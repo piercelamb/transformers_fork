@@ -857,7 +857,7 @@ class LayoutLMv2Model(LayoutLMv2PreTrainedModel):
 
         device = input_ids.device if input_ids is not None else inputs_embeds.device
 
-        visual_shape = list(input_shape)
+        visual_shape = list(self._get_input_shape(input_ids, inputs_embeds))
         visual_shape[1] = self.config.image_feature_pool_shape[0] * self.config.image_feature_pool_shape[1]
         visual_shape = torch.Size(visual_shape)
         # needs a new copy of input_shape for tracing. Otherwise wrong dimensions will occur
