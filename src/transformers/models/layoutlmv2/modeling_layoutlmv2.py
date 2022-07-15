@@ -878,19 +878,8 @@ class LayoutLMv2Model(LayoutLMv2PreTrainedModel):
             token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=device)
 
         if position_ids is None:
-            print("input shape")
-            print(input_shape.size())
             seq_length = input_shape[1]
-            print("seq length")
-            print(seq_length)
             position_ids = self.embeddings.position_ids[:, :seq_length]
-            print("position_ids")
-            print(position_ids.size())
-            '''
-            RuntimeError: The expanded size of the tensor (561) must match the existing size (512) at non-singleton dimension 1.  
-            Target sizes: [16, 561].  Tensor sizes: [1, 512]
-            '''
-            print(input_shape.size())
             position_ids = position_ids.expand(input_shape)
 
         visual_position_ids = torch.arange(0, visual_shape[1], dtype=torch.long, device=device).repeat(
@@ -1025,14 +1014,21 @@ class LayoutLMv2ForSequenceClassification(LayoutLMv2PreTrainedModel):
 
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
-        input_shape = self._get_input_shape(input_ids, inputs_embeds)
+        if input_ids is not None and inputs_embeds is not None:
+            raise ValueError("You cannot specify both input_ids and inputs_embeds at the same time")
+        elif input_ids is not None:
+            input_shape = input_ids.size()
+        elif inputs_embeds is not None:
+            input_shape = inputs_embeds.size()[:-1]
+        else:
+            raise ValueError("You have to specify either input_ids or inputs_embeds")
 
         device = input_ids.device if input_ids is not None else inputs_embeds.device
 
         visual_shape = list(input_shape)
         visual_shape[1] = self.config.image_feature_pool_shape[0] * self.config.image_feature_pool_shape[1]
         visual_shape = torch.Size(visual_shape)
-        final_shape = list(self._get_input_shape(input_ids, inputs_embeds))
+        final_shape = list(input_shape)
         final_shape[1] += visual_shape[1]
         final_shape = torch.Size(final_shape)
 
