@@ -878,8 +878,19 @@ class LayoutLMv2Model(LayoutLMv2PreTrainedModel):
             token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=device)
 
         if position_ids is None:
+            print("input shape")
+            print(input_shape.size())
             seq_length = input_shape[1]
+            print("seq length")
+            print(seq_length)
             position_ids = self.embeddings.position_ids[:, :seq_length]
+            print("position_ids")
+            print(position_ids.size())
+            '''
+            RuntimeError: The expanded size of the tensor (561) must match the existing size (512) at non-singleton dimension 1.  
+            Target sizes: [16, 561].  Tensor sizes: [1, 512]
+            '''
+            print(input_shape.size())
             position_ids = position_ids.expand(input_shape)
 
         visual_position_ids = torch.arange(0, visual_shape[1], dtype=torch.long, device=device).repeat(
